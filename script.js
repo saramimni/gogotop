@@ -93,31 +93,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 todoList.innerHTML = '';
                 snapshot.forEach((doc) => {
                     const todo = doc.data();
+                    const deadline = new Date(todo.deadline);
+                    const now = new Date();
+                    const timeLeft = deadline - now;
+                    
+                    // 남은 시간 계산
+                    const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+                    const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const timeLeftStr = timeLeft > 0 ? 
+                        `남은 시간: ${hoursLeft}시간 ${minutesLeft}분` : 
+                        '마감됨';
+
                     const li = document.createElement('li');
                     li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
                     li.innerHTML = `
                         <div class="content">
                             <input type="checkbox" ${todo.completed ? 'checked' : ''}>
                             <span>${todo.text}</span>
-                            <span class="deadline">${new Date(todo.deadline).toLocaleString()}</span>
+                            <span class="deadline">
+                                마감: ${new Date(todo.deadline).toLocaleTimeString()}
+                                <br>
+                                <span class="time-left">${timeLeftStr}</span>
+                            </span>
                         </div>
                         <div class="actions">
-                            ${todo.userName === currentUser ? 
-                                `<button class="delete-btn">삭제</button>` : ''}
+                            <button class="delete-btn" data-id="${doc.id}">삭제</button>
                         </div>
                     `;
 
                     const checkbox = li.querySelector('input');
-                    if (todo.userName === currentUser) {
-                        checkbox.addEventListener('change', () => toggleTodo(doc.id, todo.completed));
-                    } else {
-                        checkbox.disabled = true;
-                    }
+                    checkbox.addEventListener('change', () => toggleTodo(doc.id, todo.completed));
 
                     const deleteBtn = li.querySelector('.delete-btn');
-                    if (deleteBtn) {
-                        deleteBtn.addEventListener('click', () => deleteTodo(doc.id));
-                    }
+                    deleteBtn.addEventListener('click', () => deleteTodo(doc.id));
 
                     todoList.appendChild(li);
                 });
@@ -164,8 +172,22 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const todoText = todoInput.value.trim();
         const deadline = document.getElementById('deadline-input').value;
+        const deadlineDate = new Date(deadline);
+        const now = new Date();
         
-        if (todoText && deadline && currentUser) {
+        if (todoText && deadline) {
+            // 현재 시간보다 이전 시간을 선택한 경우
+            if (deadlineDate < now) {
+                alert('현재 시간보다 이후의 시간을 선택해주세요.');
+                return;
+            }
+            
+            // 오늘 날짜가 아닌 경우
+            if (deadlineDate.toDateString() !== now.toDateString()) {
+                alert('오늘 날짜의 과제만 입력할 수 있습니다.');
+                return;
+            }
+
             addTodo(todoText, deadline);
             todoInput.value = '';
             document.getElementById('deadline-input').value = '';
@@ -184,5 +206,18 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     displaySchedule();
     setInterval(displaySchedule, 1000 * 60 * 60); // 1시간마다 업데이트
+
+    // 날짜 입력 필드 설정
+    const deadlineInput = document.getElementById('deadline-input');
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // 오늘 날짜의 시작 시간과 내일 날짜의 시작 시간을 설정
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    deadlineInput.setAttribute('min', `${todayStr}T00:00`);
+    deadlineInput.setAttribute('max', `${todayStr}T23:59`);
 });
   
