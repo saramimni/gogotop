@@ -217,3 +217,21 @@ button:hover {
         flex-direction: column;
     }
 }
+
+/* 기존 CSS에 추가 */
+.time-left {
+    font-size: 0.8rem;
+    color: #FFD700;  /* 금색으로 남은 시간 강조 */
+    font-weight: bold;
+}
+
+.deadline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.todo-item.completed .time-left {
+    color: rgba(255, 255, 255, 0.5);
+}
+  
