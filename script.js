@@ -182,22 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const todoText = todoInput.value.trim();
         const deadline = document.getElementById('deadline-input').value;
-        const deadlineDate = new Date(deadline);
-        const now = new Date();
         
         if (todoText && deadline) {
-            // 현재 시간보다 이전 시간을 선택한 경우
-            if (deadlineDate < now) {
-                alert('현재 시간보다 이후의 시간을 선택해주세요.');
-                return;
-            }
-            
-            // 오늘 날짜가 아닌 경우
-            if (deadlineDate.toDateString() !== now.toDateString()) {
-                alert('오늘 날짜의 과제만 입력할 수 있습니다.');
-                return;
-            }
-
             addTodo(todoText, deadline);
             todoInput.value = '';
             document.getElementById('deadline-input').value = '';
@@ -216,18 +202,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     displaySchedule();
     setInterval(displaySchedule, 1000 * 60 * 60); // 1시간마다 업데이트
-
-    // 날짜 입력 필드 설정
-    const deadlineInput = document.getElementById('deadline-input');
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // 오늘 날짜의 시작 시간과 내일 날짜의 시작 시간을 설정
-    const todayStr = today.toISOString().split('T')[0];
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-    
-    deadlineInput.setAttribute('min', `${todayStr}T00:00`);
-    deadlineInput.setAttribute('max', `${todayStr}T23:59`);
 });
   
