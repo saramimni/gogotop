@@ -97,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const now = new Date();
                     const timeLeft = deadline - now;
                     
-                    // 남은 시간 계산
                     const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
                     const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                     const timeLeftStr = timeLeft > 0 ? 
@@ -106,6 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const li = document.createElement('li');
                     li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                    li.setAttribute('data-id', doc.id);
+                    
                     li.innerHTML = `
                         <div class="content">
                             <input type="checkbox" ${todo.completed ? 'checked' : ''}>
@@ -117,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </span>
                         </div>
                         <div class="actions">
-                            <button class="delete-btn" data-id="${doc.id}">삭제</button>
+                            <button class="delete-btn">삭제</button>
                         </div>
                     `;
 
@@ -125,7 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     checkbox.addEventListener('change', () => toggleTodo(doc.id, todo.completed));
 
                     const deleteBtn = li.querySelector('.delete-btn');
-                    deleteBtn.addEventListener('click', () => deleteTodo(doc.id));
+                    deleteBtn.addEventListener('click', async () => {
+                        try {
+                            await db.collection('todos').doc(doc.id).delete();
+                            console.log('문서 삭제 성공:', doc.id);
+                        } catch (error) {
+                            console.error('삭제 중 오류 발생:', error);
+                        }
+                    });
 
                     todoList.appendChild(li);
                 });
@@ -150,9 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 할일 삭제
     async function deleteTodo(id) {
         try {
-            await todosRef.doc(id).delete();
+            await db.collection('todos').doc(id).delete();
+            console.log('삭제 완료:', id);
         } catch (error) {
-            console.error('할일 삭제 중 오류 발생:', error);
+            console.error('삭제 중 오류 발생:', error);
+            alert('삭제 중 오류가 발생했습니다.');
         }
     }
 
